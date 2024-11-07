@@ -28,8 +28,8 @@ async function bootstrap() {
 	);
 	//Swager
 	const config = new DocumentBuilder()
-		.setTitle('Shop Management')
-		.setDescription('The Shop API description')
+		.setTitle('Auth')
+		.setDescription('The Auth API description')
 		.setVersion('1.0')
 		.addBearerAuth(
 			{

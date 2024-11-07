@@ -18,9 +18,13 @@ import { EmpleadoController } from './controller/empleado.controller';
 import { CategoriaController } from './controller/categoria.controller';
 import { ProductoController } from './controller/producto.controller';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
 	imports: [
+		ConfigModule.forRoot({
+			isGlobal: true, // Hace que el módulo Config sea accesible globalmente
+		}),
 		ClientsModule.register([
 			{
 				name: 'KAFKA_SERVICE', // Identificador del cliente Kafka
@@ -39,15 +43,19 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 		AutomapperModule.forRoot({
 			strategyInitializer: classes(),
 		}),
-		TypeOrmModule.forRoot({
-			type: 'mysql', // Especifica que usarás MySQL
-			host: 'localhost', // Host de tu servidor MySQL
-			port: 3306, // Puerto por defecto de MySQL
-			username: 'root', // Usuario de la base de datos
-			password: 'mysql', // Contraseña de la base de datos
-			database: 'node_back', // Nombre de la base de datos
-			entities: [Empleado, Categoria, Producto],
-			synchronize: false, // Sincroniza las entidades con la base de datos (solo para desarrollo)
+		TypeOrmModule.forRootAsync({
+			imports: [ConfigModule],
+			inject: [ConfigService],
+			useFactory: (configService: ConfigService) => ({
+				type: 'mysql',
+				host: configService.get<string>('DB_HOST', 'localhost'),
+				port: configService.get<number>('DB_PORT'),
+				username: configService.get<string>('DB_USERNAME'),
+				password: configService.get<string>('DB_PASSWORD'),
+				database: configService.get<string>('DB_NAME'),
+				entities: [__dirname + '/**/*.entity{.ts,.js}'],
+				synchronize: false, // Sincroniza las entidades con la base de datos (solo para desarrollo)
+			}),
 		}),
 	],
 	controllers: [EmpleadoController, CategoriaController, ProductoController],

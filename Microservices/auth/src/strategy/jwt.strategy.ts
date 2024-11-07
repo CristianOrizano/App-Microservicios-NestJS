@@ -2,16 +2,20 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UsuarioService } from '../application/usuario.service';
+import { ConfigService } from '@nestjs/config';
 
 //actua como el filtro de autenticacion
 // ya q intercepta el token para su validacion
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-	constructor(private readonly userService: UsuarioService) {
+	constructor(
+		private readonly userService: UsuarioService,
+		private readonly configService: ConfigService,
+	) {
 		super({
 			jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
 			ignoreExpiration: false,
-			secretOrKey: 'clave-secreta',
+			secretOrKey: configService.get<string>('JWT_SECRET'),
 		});
 	}
 	async validate(payload: any) {
